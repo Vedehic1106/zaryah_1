@@ -259,7 +259,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { error } = await supabase
         .from('products')
         .insert({
-        .insert({
           seller_id: productData.sellerId,
           name: productData.name,
           price: Math.round(productData.price * 100), // Convert to paise
