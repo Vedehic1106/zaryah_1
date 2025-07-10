@@ -302,18 +302,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             city,
             business_name: businessName,
             description,
-            is_verified: role === 'admin',
+            is_verified: role === 'admin', // Only admins are auto-verified
             mobile: role === 'seller' ? mobile : undefined,
             verification_doc: role === 'seller' ? verificationDoc : undefined
           });
         if (profileError) {
           console.error('Profile creation error:', profileError);
           console.warn('Profile creation failed, but user account was created successfully');
-          toast.success('Account created successfully! Profile will be set up automatically on first login.');
+          if (role === 'seller') {
+            toast.success('Seller account created! Please wait for admin approval before you can start listing products.');
+          } else {
+            toast.success('Account created successfully! Profile will be set up automatically on first login.');
+          }
           return true;
         }
         console.log('Profile created successfully');
-        toast.success('Account created successfully! Welcome to GiftFlare!');
+        
+        if (role === 'seller') {
+          toast.success('Seller account created successfully! Please wait for admin approval to start listing products.');
+        } else {
+          toast.success('Account created successfully! Welcome to Zaryah!');
+        }
         return true;
       }
       return false;

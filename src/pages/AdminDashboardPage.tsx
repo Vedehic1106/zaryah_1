@@ -158,14 +158,25 @@ export const AdminDashboardPage: React.FC = () => {
       .from('profiles')
       .update({ is_verified: true })
       .eq('id', seller.id);
+      
     if (!error) {
       toast.success(`${seller.name} approved as seller!`);
-      // Send approval email
-      await emailService.sendSellerApproval({
-        email: seller.email || '',
-        name: seller.name || '',
-        id: seller.id
-      });
+      
+      // Get user's email from auth.users table
+      const { data: authUser } = await supabase.auth.admin.getUserById(seller.id);
+      
+      if (authUser.user?.email) {
+        // Send approval email
+        await emailService.sendSellerApproval({
+          email: authUser.user.email,
+          name: seller.name || '',
+          id: seller.id
+        });
+        console.log('Approval email sent to:', authUser.user.email);
+      } else {
+        console.warn('Could not find email for seller:', seller.id);
+      }
+      
       fetchPendingSellers();
     } else {
       toast.error('Failed to approve seller');
@@ -173,8 +184,20 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const handleRejectSeller = async (seller: any) => {
-    // Optional: implement rejection logic
-    toast('Rejection logic not implemented');
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', seller.id);
+      
+    if (!error) {
+      // Also delete the auth user
+      await supabase.auth.admin.deleteUser(seller.id);
+      
+      toast.success(`${seller.name} rejected and removed from system`);
+      fetchPendingSellers();
+    } else {
+      toast.error('Failed to reject seller');
+    }
   };
 
   const handleProductStatusUpdate = async (productId: string, status: 'approved' | 'rejected') => {

@@ -245,25 +245,78 @@ class EmailService {
 
   async sendSellerApproval(seller: { email: string, name: string, id: string }) {
     const subject = 'Your Seller Account Has Been Approved!';
-    const dashboardUrl = 'https://yourdomain.com/seller/dashboard'; // TODO: Replace with actual dashboard URL
+    const dashboardUrl = `${window.location.origin}/seller/dashboard`;
     const quote = '“Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful.”';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; text-align: center;">
           <h1 style="color: white; margin: 0;">Congratulations, ${seller.name}!</h1>
-          <p style="color: #d1fae5; margin: 10px 0 0 0;">Your seller account has been approved.</p>
+          <p style="color: #d1fae5; margin: 10px 0 0 0;">Your seller account has been approved on Zaryah!</p>
         </div>
         <div style="padding: 30px; background: white;">
           <blockquote style="font-style: italic; color: #059669; border-left: 4px solid #10b981; padding-left: 16px; margin: 0 0 24px 0;">${quote}</blockquote>
-          <p>We’re excited to have you as part of our creative community. You can now start listing your amazing products and reach customers across India!</p>
+          <p>We're thrilled to welcome you to the Zaryah family! You can now start listing your beautiful handmade products and connect with customers who appreciate authentic craftsmanship.</p>
+          
+          <div style="background: #f0fdf4; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #10b981;">
+            <h3 style="color: #065f46; margin: 0 0 10px 0;">What you can do now:</h3>
+            <ul style="margin: 0; padding-left: 20px; color: #065f46;">
+              <li>Access your seller dashboard</li>
+              <li>Upload product photos and descriptions</li>
+              <li>Set your pricing and inventory</li>
+              <li>Start receiving orders from customers</li>
+              <li>Track your sales and earnings</li>
+            </ul>
+          </div>
+          
           <div style="margin: 32px 0; text-align: center;">
             <a href="${dashboardUrl}" style="background: #10b981; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 18px; font-weight: bold;">Go to Your Seller Dashboard</a>
           </div>
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">If you have any questions, reply to this email or contact our support team.</p>
+          
+          <div style="background: #fef3c7; padding: 20px; margin: 20px 0; border-radius: 8px;">
+            <h4 style="color: #92400e; margin: 0 0 10px 0;">Tips for Success:</h4>
+            <p style="color: #92400e; margin: 0; font-size: 14px;">
+              • Take high-quality photos of your products<br/>
+              • Write detailed, engaging product descriptions<br/>
+              • Price competitively while valuing your craftsmanship<br/>
+              • Respond promptly to customer inquiries<br/>
+              • Package your items with care and love
+            </p>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            If you have any questions or need help getting started, please don't hesitate to contact our support team. We're here to help you succeed!
+          </p>
         </div>
       </div>
     `;
-    const text = `Congratulations, ${seller.name}!\n\nYour seller account has been approved.\n\n${quote}\n\nYou can now start listing your products. Go to your dashboard: ${dashboardUrl}`;
+    const text = `
+Congratulations, ${seller.name}!
+
+Your seller account has been approved on Zaryah!
+
+${quote}
+
+You can now start listing your beautiful handmade products and connect with customers who appreciate authentic craftsmanship.
+
+What you can do now:
+• Access your seller dashboard
+• Upload product photos and descriptions  
+• Set your pricing and inventory
+• Start receiving orders from customers
+• Track your sales and earnings
+
+Go to your dashboard: ${dashboardUrl}
+
+Tips for Success:
+• Take high-quality photos of your products
+• Write detailed, engaging product descriptions
+• Price competitively while valuing your craftsmanship
+• Respond promptly to customer inquiries
+• Package your items with care and love
+
+If you have any questions or need help getting started, please contact our support team.
+    `;
+    
     return this.sendEmail({
       to: seller.email,
       subject,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, MapPin, Eye, EyeOff, Sparkles, Building } from 'lucide-react';
+import { Mail, Lock, User, MapPin, Eye, EyeOff, Sparkles, Building, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const RegisterPage: React.FC = () => {
@@ -211,6 +211,19 @@ export const RegisterPage: React.FC = () => {
             {/* Seller-specific fields */}
             {formData.role === 'seller' && (
               <>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-yellow-900">Seller Account Verification</h4>
+                      <p className="text-sm text-yellow-800 mt-1">
+                        Seller accounts require admin approval before you can start listing products. 
+                        You'll receive an email notification once your account is verified.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
                 <div>
                   <label htmlFor="businessName" className="block text-lg font-medium text-charcoal-800 mb-2">
                     Business Name
@@ -266,20 +279,28 @@ export const RegisterPage: React.FC = () => {
                 </div>
                 <div>
                   <label htmlFor="verificationDoc" className="block text-lg font-medium text-charcoal-800 mb-2">
-                    Verification Document (IG handle, prior orders, etc.)
+                    Verification Info <span className="text-red-500">*</span>
                   </label>
+                  <p className="text-sm text-charcoal-600 mb-2">
+                    Please provide verification information such as:
+                  </p>
+                  <ul className="text-sm text-charcoal-600 mb-3 ml-4 list-disc">
+                    <li>Instagram handle showcasing your work</li>
+                    <li>Website or portfolio link</li>
+                    <li>Previous marketplace experience</li>
+                    <li>Business registration details</li>
+                  </ul>
                   <div className="mt-1 relative">
-                    <input
+                    <textarea
                       id="verificationDoc"
                       name="verificationDoc"
-                      type="text"
                       required
                       value={formData.verificationDoc}
                       onChange={handleChange}
-                      className="block w-full px-4 py-3 pl-12 border border-primary-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
-                      placeholder="Enter IG handle, prior orders, etc."
+                      className="block w-full px-4 py-3 border border-primary-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
+                      placeholder="e.g., Instagram: @myhandmadecrafts, Website: www.mycrafts.com, Previous experience on Etsy..."
+                      rows={3}
                     />
-                    <User className="w-6 h-6 text-primary-500 absolute left-4 top-3" />
                   </div>
                 </div>
               </>
