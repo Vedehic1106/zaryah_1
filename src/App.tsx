@@ -11,6 +11,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LocationDetector } from './components/LocationDetector';
 import { SupportChat } from './components/SupportChat';
 import { ConnectionStatus } from './components/ConnectionStatus';
+import { DebugPanel } from './components/DebugPanel';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -72,6 +73,7 @@ function App() {
                   </Routes>
                   <LocationDetector />
                   <SupportChat />
+                  <DebugPanel />
                 </Layout>
                 
                 {/* Toast Notifications */}

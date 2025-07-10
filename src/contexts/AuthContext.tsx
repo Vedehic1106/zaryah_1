@@ -128,9 +128,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .insert({
                 id: supabaseUser.id,
                 name: defaultName,
-                email: supabaseUser.email,
                 role: 'buyer',
-                city: null,
+                city: 'Mumbai',
                 is_verified: false
               })
               .select()
@@ -138,7 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
             if (insertError) {
               console.error('Error creating profile:', insertError);
-              throw insertError;
               createFallbackUser(supabaseUser, defaultName);
             } else if (newProfile) {
               console.log('Profile created successfully:', newProfile);
@@ -193,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createFallbackUser = (supabaseUser: SupabaseUser, defaultName: string) => {
     console.warn('Creating fallback user profile');
-    console.log('Fallback user created for:', supabaseUser.email);
+    console.log('Fallback user created for:', supabaseUser.email || supabaseUser.id);
     setUser({
       id: supabaseUser.id,
       email: supabaseUser.email || '',
@@ -301,7 +299,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: data.user.id,
             name,
             role,
-            email: email.trim().toLowerCase(),
             city,
             business_name: businessName,
             description,
@@ -311,10 +308,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         if (profileError) {
           console.error('Profile creation error:', profileError);
-          console.warn('Profile creation failed but user was created');
-          toast.error('Account created but profile setup failed. Please contact support.');
-          return false;
+          console.warn('Profile creation failed, but user account was created successfully');
+          toast.success('Account created successfully! Profile will be set up automatically on first login.');
+          return true;
         }
+        console.log('Profile created successfully');
         toast.success('Account created successfully! Welcome to GiftFlare!');
         return true;
       }

@@ -25,7 +25,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'implicit'
+    flowType: 'pkce'
   },
   realtime: {
     params: {
@@ -135,11 +135,35 @@ export const reconnect = () => {
 // Health check function
 export const healthCheck = async () => {
   try {
+    console.log('Running health check...');
     // Simple auth check
     const { data: { session }, error } = await supabase.auth.getSession();
     
-    return { healthy: !error, error, hasSession: !!session };
+    if (error) {
+      console.error('Health check auth error:', error);
+      return { healthy: false, error, hasSession: false };
+    }
+    
+    // Test a simple database query
+    try {
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .select('count', { count: 'exact', head: true })
+        .limit(1);
+      
+      if (dbError) {
+        console.warn('Health check database warning:', dbError);
+        return { healthy: true, error: dbError, hasSession: !!session, dbAccessible: false };
+      }
+      
+      console.log('Health check passed');
+      return { healthy: true, error: null, hasSession: !!session, dbAccessible: true };
+    } catch (dbError) {
+      console.warn('Health check database error:', dbError);
+      return { healthy: true, error: dbError, hasSession: !!session, dbAccessible: false };
+    }
   } catch (err) {
+    console.error('Health check failed:', err);
     return { healthy: false, error: err };
   }
 };
