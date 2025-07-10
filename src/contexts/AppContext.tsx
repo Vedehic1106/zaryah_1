@@ -50,6 +50,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const refreshData = async () => {
+    console.log('Refreshing app data...');
     setIsLoading(true);
     try {
       await Promise.all([
@@ -58,6 +59,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fetchCurrentTheme()
       ]);
     } catch (error) {
+      console.error('Error refreshing app data:', error);
       console.error('Error refreshing data:', error);
       toast.error('Failed to load data');
     } finally {
@@ -67,6 +69,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products from database...');
       console.log('Fetching products...');
       
       const { data, error } = await supabase
@@ -81,6 +84,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Database error fetching products:', error);
         console.error('Error fetching products:', error);
         // Check if it's a connection error or table doesn't exist
         if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')) {
@@ -88,6 +92,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else {
           console.warn('Failed to load products from database, using fallback data');
         }
+        console.log('Using sample products as fallback');
         setProducts(getSampleProducts());
         return;
       }
@@ -95,6 +100,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.log('Products fetched:', data?.length || 0);
 
       const formattedProducts: Product[] = (data || []).map(product => ({
+        ...product,
         id: product.id,
         sellerId: product.seller_id,
         sellerName: product.profiles?.name || 'Unknown Seller',
@@ -111,6 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createdAt: product.created_at
       }));
 
+      console.log('Formatted products:', formattedProducts.length);
       setProducts(formattedProducts);
     } catch (error) {
       console.error('Error in fetchProducts:', error);
@@ -121,6 +128,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Fallback sample products for when database is not available
   const getSampleProducts = (): Product[] => [
+    // Sample products for demo/fallback
     {
       id: 'sample-1',
       sellerId: 'sample-seller-1',
@@ -185,6 +193,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchDeliveryCities = async () => {
     try {
+      console.log('Fetching delivery cities...');
       const { data, error } = await supabase
         .from('delivery_cities')
         .select('*')
@@ -192,6 +201,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error) {
         console.error('Error fetching delivery cities:', error);
+        console.warn('Could not fetch delivery cities, using empty array');
         return;
       }
 
@@ -201,6 +211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isActive: city.is_active
       }));
 
+      console.log('Delivery cities loaded:', formattedCities.length);
       setDeliveryCities(formattedCities);
     } catch (error) {
       console.error('Error in fetchDeliveryCities:', error);
@@ -209,6 +220,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchCurrentTheme = async () => {
     try {
+      console.log('Fetching current theme...');
       const { data, error } = await supabase
         .from('themes')
         .select('*')
@@ -217,6 +229,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching theme:', error);
+        console.warn('Could not fetch theme, using default');
         return;
       }
 
@@ -226,6 +239,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           colors: data.colors as { primary: string; secondary: string; accent: string },
           isActive: data.is_active
         });
+        console.log('Theme loaded:', data.name);
+      } else {
+        console.log('No active theme found, using default');
       }
     } catch (error) {
       console.error('Error in fetchCurrentTheme:', error);
@@ -234,6 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'sellerName'>): Promise<boolean> => {
     if (!user) {
+      console.error('No user found for adding product');
       toast.error('You must be logged in to add products');
       return false;
     }
@@ -241,6 +258,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const { error } = await supabase
         .from('products')
+        .insert({
         .insert({
           seller_id: productData.sellerId,
           name: productData.name,
@@ -255,6 +273,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
       if (error) {
+        console.error('Database error adding product:', error);
         console.error('Error adding product:', error);
         toast.error('Failed to add product');
         return false;
@@ -262,6 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       toast.success('Product added successfully!');
       await fetchProducts();
+      console.log('Product added successfully');
       return true;
     } catch (error) {
       console.error('Error in addProduct:', error);
@@ -272,6 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateProduct = async (productId: string, updates: Partial<Product>): Promise<boolean> => {
     try {
+      console.log('Updating product:', productId, updates);
       const dbUpdates: any = {};
       
       if (updates.status) dbUpdates.status = updates.status;
@@ -290,6 +311,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('id', productId);
 
       if (error) {
+        console.error('Database error updating product:', error);
         console.error('Error updating product:', error);
         toast.error('Failed to update product');
         return false;
@@ -297,6 +319,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       toast.success('Product updated successfully!');
       await fetchProducts();
+      console.log('Product updated successfully');
       return true;
     } catch (error) {
       console.error('Error in updateProduct:', error);
@@ -307,6 +330,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateDeliveryCity = async (cityId: string, isActive: boolean): Promise<boolean> => {
     try {
+      console.log('Updating delivery city:', cityId, isActive);
       const { error } = await supabase
         .from('delivery_cities')
         .update({ is_active: isActive })
@@ -314,6 +338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error) {
         console.error('Error updating delivery city:', error);
+        console.error('Database error updating delivery city:', error);
         toast.error('Failed to update delivery city');
         return false;
       }
@@ -330,6 +355,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateTheme = async (themeName: string): Promise<boolean> => {
     try {
+      console.log('Updating theme to:', themeName);
       // First, deactivate all themes
       await supabase
         .from('themes')
@@ -343,6 +369,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('name', themeName);
 
       if (error) {
+        console.error('Database error updating theme:', error);
         console.error('Error updating theme:', error);
         toast.error('Failed to update theme');
         return false;

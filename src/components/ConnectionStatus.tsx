@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, CheckCircle, AlertCircle, Database } from 'lucide-react';
 import { getConnectionStatus, reconnect, healthCheck } from '../lib/supabase';
 
 export const ConnectionStatus: React.FC = () => {
@@ -12,6 +12,7 @@ export const ConnectionStatus: React.FC = () => {
     const checkStatus = () => {
       const currentStatus = getConnectionStatus();
       setStatus(currentStatus);
+      console.log('Connection status check:', currentStatus);
       // Show status for failed connections, hide for successful ones after a delay
       if (currentStatus === 'failed') {
         setIsVisible(true);
@@ -19,6 +20,7 @@ export const ConnectionStatus: React.FC = () => {
         // Show success briefly, then hide
         setIsVisible(true);
         setTimeout(() => setIsVisible(false), 3000);
+        console.log('Connected successfully, hiding status in 3 seconds');
       } else if (currentStatus === 'connecting') {
         setIsVisible(true);
       }
@@ -27,6 +29,7 @@ export const ConnectionStatus: React.FC = () => {
     // Check status immediately
     checkStatus();
 
+    console.log('Setting up connection status monitoring');
     // Check status every 10 seconds (less frequent)
     const interval = setInterval(checkStatus, 10000);
 
@@ -35,6 +38,7 @@ export const ConnectionStatus: React.FC = () => {
 
   const handleRetry = async () => {
     setIsRetrying(true);
+    console.log('Manual retry initiated');
     setStatus('connecting');
     reconnect();
     
@@ -42,6 +46,7 @@ export const ConnectionStatus: React.FC = () => {
     setTimeout(() => {
       const newStatus = getConnectionStatus();
       setStatus(newStatus);
+      console.log('Retry result:', newStatus);
       setIsRetrying(false);
       // Hide if connected
       if (newStatus === 'connected') {
@@ -52,14 +57,19 @@ export const ConnectionStatus: React.FC = () => {
 
   const handleManualCheck = async () => {
     setIsRetrying(true);
+    console.log('Manual health check initiated');
     setStatus('connecting');
-    const { healthy } = await healthCheck();
+    const { healthy, error } = await healthCheck();
     setStatus(healthy ? 'connected' : 'failed');
     setIsRetrying(false);
     
     // Hide if connected
     if (healthy) {
       setTimeout(() => setIsVisible(false), 2000);
+    }
+    
+    if (!healthy && error) {
+      console.error('Health check failed:', error);
     }
   };
 
@@ -76,7 +86,7 @@ export const ConnectionStatus: React.FC = () => {
         <div className={`rounded-xl shadow-lg border p-4 ${
           status === 'connected' 
             ? 'bg-green-50 border-green-200' 
-            : status === 'connecting'
+            : status === 'connecting' 
             ? 'bg-yellow-50 border-yellow-200'
             : 'bg-red-50 border-red-200'
         }`}>
@@ -84,7 +94,7 @@ export const ConnectionStatus: React.FC = () => {
             <div className="flex-shrink-0">
               {status === 'connected' ? (
                 <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : status === 'connecting' ? (
+              ) : status === 'connecting' ? ( 
                 <RefreshCw className="w-5 h-5 text-yellow-500 animate-spin" />
               ) : (
                 <AlertCircle className="w-5 h-5 text-red-500" />
@@ -95,7 +105,7 @@ export const ConnectionStatus: React.FC = () => {
               <h3 className={`text-sm font-semibold ${
                 status === 'connected' ? 'text-green-900' :
                 status === 'connecting' ? 'text-yellow-900' : 'text-red-900'
-              }`}>
+              }`}> 
                 {status === 'connected' ? 'Connected' : 
                  status === 'connecting' ? 'Connecting...' : 'Connection Failed'}
               </h3>
@@ -103,9 +113,13 @@ export const ConnectionStatus: React.FC = () => {
                 status === 'connected' ? 'text-green-700' :
                 status === 'connecting' ? 'text-yellow-700' : 'text-red-700'
               }`}>
-                {status === 'connected' ? 'Database connection is working properly.' :
-                 status === 'connecting' ? 'Attempting to connect to the database...' :
+                {status === 'connected' ? 'Supabase connection is working properly.' :
+                 status === 'connecting' ? 'Attempting to connect to Supabase...' :
                  'Unable to connect to the database. Some features may not work.'}
+              </p>
+              
+              <p className="text-xs text-gray-500 mt-1">
+                Check your .env file for correct Supabase credentials
               </p>
               
               {status === 'failed' && (
@@ -132,7 +146,7 @@ export const ConnectionStatus: React.FC = () => {
             <button
               onClick={() => setIsVisible(false)}
               className={`flex-shrink-0 hover:opacity-75 ${
-                status === 'connected' ? 'text-green-400' :
+                status === 'connected' ? 'text-green-400' : 
                 status === 'connecting' ? 'text-yellow-400' : 'text-red-400'
               }`}
             >
